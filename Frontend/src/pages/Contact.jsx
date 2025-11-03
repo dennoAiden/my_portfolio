@@ -1,6 +1,44 @@
+import { useState } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [status, setStatus] = useState("");
+
+  // handle input change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Sending...");
+
+    try {
+      const response = await fetch("http://localhost:5000/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setStatus("Message sent successfully ✅");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        setStatus("Failed to send message ❌");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setStatus("Error connecting to server ❌");
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-1 lg:pt-20 pb-10 animate-fadeIn text-gray-100">
       <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-white text-center sm:text-left">
@@ -34,22 +72,35 @@ export default function Contact() {
         {/* Message Form */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg">
           <h3 className="text-2xl font-bold mb-6 text-white">Send a Message</h3>
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
+              name="name"
               placeholder="Your Name"
+              value={formData.name}
+              onChange={handleChange}
+              required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 outline-none"
             />
             <input
               type="email"
+              name="email"
               placeholder="Your Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 outline-none"
             />
             <textarea
+              name="message"
               rows={4}
               placeholder="Your Message"
+              value={formData.message}
+              onChange={handleChange}
+              required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 outline-none resize-none"
             ></textarea>
+
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-blue-500 transition-colors shadow-lg"
@@ -57,6 +108,13 @@ export default function Contact() {
               Send Message
             </button>
           </form>
+
+          {/* status message */}
+          {status && (
+            <p className="mt-4 text-center text-sm sm:text-base text-gray-300">
+              {status}
+            </p>
+          )}
         </div>
       </div>
     </div>
